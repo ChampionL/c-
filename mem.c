@@ -1,3 +1,11 @@
+/*
+ 此DEMO用于展示共享内存
+ 共享内存使用，ftok,shmget,shmat,shmdt等
+ 进程级互斥变量使用 pthread_mutex_t使用，在初始化此变量时候采用动态初始化，将pthread_mutexattr_t属性初始化时候指定为pthread_mutex_t;
+Note: 在shmget时候不需要加上IPC_EXCL，该变量会在shmkey存在的情况下返回失败,无法获得shmid，因此多进程同时使用该进程时候会出现Segment Fault
+Note2: 互斥变量熟悉pthread_mutexattr_t也需要在共享内存进行分配，否则进程互斥锁无法使用
+Problem:pthread_mutex_setpshared()函数居然用man 3查不到，回头看看怎么安装文档
+*/
 #include<stdio.h>
 #include<sys/types.h>
 #include<sys/ipc.h>
@@ -32,22 +40,22 @@ int main(){
 	}
 	p(2);
 	pthread_mutex_t * mutex = (pthread_mutex_t*)(shmptr);
-	pthread_mutexattr_t * mutex_attr = (pthread_mutexattr_t*)(shmptr+sizeof(pthread_mutex_t));
+	//pthread_mutexattr_t * mutex_attr = (pthread_mutexattr_t*)(shmptr+sizeof(pthread_mutex_t));
 	//pthread_mutexattr_t mutex_attr;
 	int pret;
 	//struct pthread_mutex_t mutex;
 	if(!isExist){
 		//pthread_mutex_t * mutex = (pthread_mutex_t*)(shmptr);
-		//pthread_mutexattr_t mutex_attr;
-		pthread_mutexattr_init(mutex_attr);
-		pret = pthread_mutexattr_setpshared(mutex_attr,PTHREAD_PROCESS_SHARED);
+		pthread_mutexattr_t mutex_attr;
+		pthread_mutexattr_init(&mutex_attr);
+		pret = pthread_mutexattr_setpshared(&mutex_attr,PTHREAD_PROCESS_SHARED);
 		//	pret = pthread_mutex_setpshared(mutex,PTHREAD_PROCESS_SHARED);
 		if(0 != pret){
 			printf("pthread_mutex_setpshared failed:%s\n",strerror(errno));
 			return -1;
 		}
 
-		pret = pthread_mutex_init(mutex,mutex_attr);
+		pret = pthread_mutex_init(mutex,&mutex_attr);
 		if(0 != pret){
 			printf("pthread_init failed:%s\n",strerror(errno));
 			return -1;
