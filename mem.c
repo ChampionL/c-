@@ -40,22 +40,22 @@ int main(){
 	}
 	p(2);
 	pthread_mutex_t * mutex = (pthread_mutex_t*)(shmptr);
-	//pthread_mutexattr_t * mutex_attr = (pthread_mutexattr_t*)(shmptr+sizeof(pthread_mutex_t));
+	pthread_mutexattr_t * mutex_attr = (pthread_mutexattr_t*)(shmptr+sizeof(pthread_mutex_t));
 	//pthread_mutexattr_t mutex_attr;
 	int pret;
 	//struct pthread_mutex_t mutex;
 	if(!isExist){
 		//pthread_mutex_t * mutex = (pthread_mutex_t*)(shmptr);
-		pthread_mutexattr_t mutex_attr;
-		pthread_mutexattr_init(&mutex_attr);
-		pret = pthread_mutexattr_setpshared(&mutex_attr,PTHREAD_PROCESS_SHARED);
+		//pthread_mutexattr_t mutex_attr;
+		pthread_mutexattr_init(mutex_attr);
+		pret = pthread_mutexattr_setpshared(mutex_attr,PTHREAD_PROCESS_SHARED);
 		//	pret = pthread_mutex_setpshared(mutex,PTHREAD_PROCESS_SHARED);
 		if(0 != pret){
 			printf("pthread_mutex_setpshared failed:%s\n",strerror(errno));
 			return -1;
 		}
 
-		pret = pthread_mutex_init(mutex,&mutex_attr);
+		pret = pthread_mutex_init(mutex,mutex_attr);
 		if(0 != pret){
 			printf("pthread_init failed:%s\n",strerror(errno));
 			return -1;
